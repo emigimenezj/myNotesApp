@@ -29,16 +29,24 @@ const addNote = function(title, body, important) {
     }
 }
 
-const removeNote = function(title) {
+const removeNote = function(indexs) {
     const notes = loadNotes();
 
-    const notesToKeep = notes.filter(n => n.title !== title);
+    // Transform to zero indexation
+    indexs = indexs.map(i => i - 1);
 
-    if (notesToKeep.length < notes.length) {
+    if (!indexs.some(i => notes[i] === undefined)) { // Check if there are an invalid index. (out of range or text)
+
+        let notesToKeep = [];
+
+        for (let n in notes)
+            if (!indexs.some(i => i == n)) notesToKeep.push(notes[n]);
+
         saveNotes(notesToKeep);
-        console.log(chalk.bgGreen.black("Note has been removed successfully!"));
+        console.log(chalk.bgGreen.black("Notes has been removed successfully!"));
+
     } else {
-        console.log(chalk.bgRed.black("There is no note with that title!"));
+        console.log(chalk.bgRed.black("Some notes were you're wanting to delete doesn't exist!"));
     }
 }
 
@@ -66,43 +74,57 @@ const listNotes = function() {
     }
 }
 
-const read = function(title) {
+const readNote = function(indexs, important) {
+    
     const notes = loadNotes();
-
-    const importantNotes = notes.filter(n => n.important);
-
-    for (let i = 0; i < notes.length; i++) {
-        if (notes[i].title === title) {
-            if (notes[i].important) {
-                console.log(chalk.redBright(`▼ Note ${i+1}: `) + notes[i].title);
+    
+    const amountImportantNotes = notes.filter(n => n.important).length;
+    
+    // Transform to zero indexation
+    indexs = indexs.map(i => i - 1);    
+    
+    if (!indexs.some(i => notes[important? i : i + amountImportantNotes] === undefined)) { // Check if all index are in range in their respective priority group
+        indexs.map(i => {
+            if (important) {
+                console.log(chalk.redBright(`▼ Note ${i + 1}: `) + notes[i].title);
+                console.log(chalk.yellow(`[Body]\n`) , notes[i].body);
+                console.log(chalk.yellow(`--------------------------------------------------`));
             } else {
-                console.log(chalk.blueBright(`▼ Note ${i + 1 - importantNotes.length}: `) + notes[i].title);
+                console.log(chalk.blueBright(`▼ Note ${i + 1 - amountImportantNotes}: `) + notes[i+amountImportantNotes].title);
+                console.log(chalk.yellow(`[Body]\n`) , notes[i].body);
+                console.log(chalk.yellow(`--------------------------------------------------`));
             }
-            console.log(chalk.yellow(`[Body]\n`) , notes.find(n => n.title === title).body);
-            console.log(chalk.yellow(`--------------------------------------------------`));
-            return
-        }
+        });
+    } else {
+        console.log(chalk.bgRed.black("Some notes were you're looking for doesn't exist!"));
     }
-    console.log(chalk.bgRed.black("The note were you're looking for doesn't exist!"));
 }
 
-const listAll = function() {
+const listAllNotes = function() {
     const notes = loadNotes();
-
+    
     const importantNotes = notes.filter(n => n.important);
     const commonNotes = notes.filter(n => !n.important);
-
+    
     if (notes.length !== 0) {
+        let indexs = [];
         console.log(chalk.bgRedBright.black("Your important notes:"));
-        importantNotes.forEach(n => read(n.title));
+        for (let i = 0; i < importantNotes.length; i++)
+            indexs[i] = i+1;    // Use i+1 because "readNote" needs non-zero index array.
+        readNotes(indexs, true);
+
+        indexs = [];    
         console.log(chalk.bgBlueBright.black("Your common notes:"));
-        commonNotes.forEach(n => read(n.title));
+        for (let i = 0; i < commonNotes.length; i++)
+            indexs[i] = i+1;    // Use i+1 because "readNote" needs non-zero index array.
+        readNotes(indexs, false);
     } else {
         console.log(chalk.bgBlueBright.black("There are no notes to show! Add one using the 'add' command!"));
     }
 }
+  
+const swapNotes = function(from, to, important) {
 
-const swap = function(from, to, important) {
     const notes = loadNotes();
 
     if (typeof from === "number" && typeof to === "number") {
@@ -149,13 +171,6 @@ const swap = function(from, to, important) {
     }
 }
 
-
-
-
-
-
-
-
 function loadNotes() {
     try {
         const dataBuffer = fs.readFileSync("notes.json");
@@ -178,7 +193,7 @@ module.exports = {
     addNote,
     removeNote,
     listNotes,
-    listAll,
-    read,
-    swap
+    listAllNotes,
+    readNote,
+    swapNotes
 }

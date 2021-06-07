@@ -33,15 +33,8 @@ yargs.command({
 yargs.command({
     command: "remove",
     describe: "Remove a note",
-    builder: {
-        title: {
-            describe: "Note title",
-            demandOption: true,
-            type: 'string'
-        }
-    },
     handler(argv) {
-        notes.removeNote(argv.title);
+        notes.removeNote(argv._.slice(1));
     }
 });
 
@@ -60,7 +53,7 @@ yargs.command({
     command: "listall",
     describe: "List all notes with their bodies",
     handler() {
-        notes.listAll();
+        notes.listAllNotes();
     }
 });
 
@@ -70,7 +63,7 @@ yargs.command({
     command: "read",
     describe: "Read a note",
     handler(argv) {
-        notes.read(argv.title);
+        notes.readNote(argv._.slice(1));
     }
 });
 
@@ -78,7 +71,7 @@ yargs.command({
     command: "swap",
     describe: "Swap positions between two notes",
     handler(argv) {
-        notes.swap(argv._[1], argv._[2], argv.i);
+        notes.swapNotes(argv._[1], argv._[2], argv.i);
     }
 });
 
