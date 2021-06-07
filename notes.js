@@ -5,15 +5,25 @@ const getNotes = function() {
     return "Your notes..."
 }
 
-const addNote = function(title, body) {
+const addNote = function(title, body, important) {
     const notes = loadNotes();
+
+    const importantNotes = notes.filter(n => n.important);
+    const commonNotes = notes.filter(n => !n.important);
 
     const duplicateNotes = notes.some(n => n.title === title);
 
     if (!duplicateNotes) {
-        notes.push({title, body});
-        saveNotes(notes);
-        console.log(chalk.bgGreen.black("New note added!"));
+        if (important) {
+            importantNotes.push({title, body, important})
+        } else {
+            commonNotes.push({title, body, important});
+        }
+
+        saveNotes(importantNotes.concat(commonNotes));
+
+        console.log(chalk.bgGreen.black(`New ${important? "important" : "common"} note added!`));
+
     } else {
         console.log(chalk.bgRed.black("Note title taken!"));
     }
@@ -43,69 +53,115 @@ const removeNote = function(indexs) {
 const listNotes = function() {
     const notes = loadNotes();
 
-    console.log(chalk.bgBlueBright.black("Your notes:"));
-
     if (notes.length !== 0) {
-        for (let i = 0; i < notes.length; i++)
-            console.log(chalk.blueBright(`Note ${i+1}: `) + notes[i].title);
+
+        // Important notes management
+        console.log(chalk.bgRedBright.black("Your important notes:"));
+        const importantNotes = notes.filter(n => n.important);
+        for (let i = 0; i < importantNotes.length; i++) {
+            console.log(chalk.redBright(`Note ${i+1}: `) + importantNotes[i].title);
+        }
+
+        // Common notes management
+        console.log(chalk.bgBlueBright.black("Your common notes:"));
+        const commonNotes = notes.filter(n => !n.important);
+        for (let i = 0; i < commonNotes.length; i++) {
+            console.log(chalk.blueBright(`Note ${i+1}: `) + commonNotes[i].title);
+        }
+
     } else {
         console.log(chalk.bgBlueBright.black("There are no notes to show! Add one using the 'add' command!"));
     }
 }
 
-const readNote = function(indexs) {
-
+const readNote = function(indexs, important) {
+    
     const notes = loadNotes();
-
+    
+    const amountImportantNotes = notes.filter(n => n.important).length;
+    
     // Transform to zero indexation
-    indexs = indexs.map(i => i - 1);
-
-    if (!indexs.some(i => notes[i] === undefined)) {
+    indexs = indexs.map(i => i - 1);    
+    
+    if (!indexs.some(i => notes[important? i : i + amountImportantNotes] === undefined)) { // Check if all index are in range in their respective priority group
         indexs.map(i => {
-            console.log(chalk.blueBright(`▼ Note ${i+1}: `) + notes[i].title);
-            console.log(chalk.yellow(`[Body]\n`) , notes[i].body);
-            console.log(chalk.yellow(`--------------------------------------------------`));
-        })
-        return
+            if (important) {
+                console.log(chalk.redBright(`▼ Note ${i + 1}: `) + notes[i].title);
+                console.log(chalk.yellow(`[Body]\n`) , notes[i].body);
+                console.log(chalk.yellow(`--------------------------------------------------`));
+            } else {
+                console.log(chalk.blueBright(`▼ Note ${i + 1 - amountImportantNotes}: `) + notes[i+amountImportantNotes].title);
+                console.log(chalk.yellow(`[Body]\n`) , notes[i].body);
+                console.log(chalk.yellow(`--------------------------------------------------`));
+            }
+        });
+    } else {
+        console.log(chalk.bgRed.black("Some notes were you're looking for doesn't exist!"));
     }
-    console.log(chalk.bgRed.black("Some notes were you're looking for doesn't exist!"));
 }
 
 const listAllNotes = function() {
     const notes = loadNotes();
-
+    
+    const importantNotes = notes.filter(n => n.important);
+    const commonNotes = notes.filter(n => !n.important);
+    
     if (notes.length !== 0) {
         let indexs = [];
-        for (let i = 0; i < notes.length; i++) {
+        console.log(chalk.bgRedBright.black("Your important notes:"));
+        for (let i = 0; i < importantNotes.length; i++)
             indexs[i] = i+1;    // Use i+1 because "readNote" needs non-zero index array.
-        }
-        readNote(indexs);
+        readNotes(indexs, true);
+
+        indexs = [];    
+        console.log(chalk.bgBlueBright.black("Your common notes:"));
+        for (let i = 0; i < commonNotes.length; i++)
+            indexs[i] = i+1;    // Use i+1 because "readNote" needs non-zero index array.
+        readNotes(indexs, false);
     } else {
         console.log(chalk.bgBlueBright.black("There are no notes to show! Add one using the 'add' command!"));
     }
 }
+  
+const swapNotes = function(from, to, important) {
 
-const swapNotes = function(from, to) {
     const notes = loadNotes();
 
     if (typeof from === "number" && typeof to === "number") {
 
+        const amountImportantNotes = notes.filter(n => n.important).length;
+
         // Transform to zero indexation
+        if (!important) {
+            from += amountImportantNotes;
+            to += amountImportantNotes;
+        }
         from--;
         to--;
 
         // Check index sanity
         let check = "";
-        if (notes[from] === undefined) check += chalk.bgRed.black(`The note ${from+1} doesn't exist. `);
-        if (notes[to] === undefined) check += chalk.bgRed.black(`The note ${to+1} doesn't exist.`);
+        if (notes[from] === undefined) check += chalk.bgRed.black(`The ${important? "important" : "common"} note ${from+1} doesn't exist. `);
+        if (notes[to] === undefined) check += chalk.bgRed.black(`The ${important? "important" : "common"} note ${to+1} doesn't exist.`);
 
         // After sanity index parameters, swap notes
         if (!check) {
+
             let aux = notes[to];
             notes[to] = notes[from];
             notes[from] = aux;
+
             saveNotes(notes);
-            check += chalk.bgGreen.black(`The note ${from+1} was swapped by note ${to+1} successfully!`);
+
+            check += chalk.bgGreen.black(   // Setting console message
+                `The ${
+                    important? "important" : "common"
+                } note ${
+                    important? from+1 : from+1-amountImportantNotes
+                } was swapped by note ${
+                    important? to+1 : to+1-amountImportantNotes
+                } successfully!`
+            );
         }
 
         console.log(check);
@@ -114,13 +170,6 @@ const swapNotes = function(from, to) {
         console.log(chalk.bgRed.black("Use tip: you must to put 'swap' followed by two numbers separated between them."));
     }
 }
-
-
-
-
-
-
-
 
 function loadNotes() {
     try {

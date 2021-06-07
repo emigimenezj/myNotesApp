@@ -18,10 +18,14 @@ yargs.command({
             describe: "Note body",
             demandOption: true,
             type: 'string'
+        },
+        i: {
+            describe: "Note important tier",
+            type: 'boolean'
         }
     },
     handler(argv) {
-        notes.addNote(argv.title, argv.body);
+        notes.addNote(argv.title, argv.body, argv.i);
     }
 });
 
@@ -67,7 +71,7 @@ yargs.command({
     command: "swap",
     describe: "Swap positions between two notes",
     handler(argv) {
-        notes.swapNotes(argv._[1], argv._[2]);
+        notes.swapNotes(argv._[1], argv._[2], argv.i);
     }
 });
 
