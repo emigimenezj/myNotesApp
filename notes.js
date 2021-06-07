@@ -19,16 +19,24 @@ const addNote = function(title, body) {
     }
 }
 
-const removeNote = function(title) {
+const removeNote = function(indexs) {
     const notes = loadNotes();
 
-    const notesToKeep = notes.filter(n => n.title !== title);
+    // Transform to zero indexation
+    indexs = indexs.map(i => i - 1);
 
-    if (notesToKeep.length < notes.length) {
+    if (!indexs.some(i => notes[i] === undefined)) { // Check if there are an invalid index. (out of range or text)
+
+        let notesToKeep = [];
+
+        for (let n in notes)
+            if (!indexs.some(i => i == n)) notesToKeep.push(notes[n]);
+
         saveNotes(notesToKeep);
-        console.log(chalk.bgGreen.black("Note has been removed successfully!"));
+        console.log(chalk.bgGreen.black("Notes has been removed successfully!"));
+
     } else {
-        console.log(chalk.bgRed.black("There is no note with that title!"));
+        console.log(chalk.bgRed.black("Some notes were you're wanting to delete doesn't exist!"));
     }
 }
 
@@ -45,33 +53,39 @@ const listNotes = function() {
     }
 }
 
-const read = function(title) {
+const readNote = function(indexs) {
+
     const notes = loadNotes();
 
-    for(let i = 0; i < notes.length; i++) {
-        if (notes[i].title === title) {
+    // Transform to zero indexation
+    indexs = indexs.map(i => i - 1);
+
+    if (!indexs.some(i => notes[i] === undefined)) {
+        indexs.map(i => {
             console.log(chalk.blueBright(`▼ Note ${i+1}: `) + notes[i].title);
-            console.log(chalk.yellow(`[Body]\n`) , notes.find(n => n.title === title).body);
+            console.log(chalk.yellow(`[Body]\n`) , notes[i].body);
             console.log(chalk.yellow(`--------------------------------------------------`));
-            return
-        }
+        })
+        return
     }
-    console.log(chalk.bgRed.black("The note were you're looking for doesn't exist!"));
+    console.log(chalk.bgRed.black("Some notes were you're looking for doesn't exist!"));
 }
 
-const listAll = function() {
+const listAllNotes = function() {
     const notes = loadNotes();
 
-    console.log(chalk.bgBlueBright.black("Your notes:"));
-
     if (notes.length !== 0) {
-        notes.forEach(n => read(n.title));
+        let indexs = [];
+        for (let i = 0; i < notes.length; i++) {
+            indexs[i] = i+1;    // Use i+1 because "readNote" needs non-zero index array.
+        }
+        readNote(indexs);
     } else {
         console.log(chalk.bgBlueBright.black("There are no notes to show! Add one using the 'add' command!"));
     }
 }
 
-const swap = function(from, to) {
+const swapNotes = function(from, to) {
     const notes = loadNotes();
 
     if (typeof from === "number" && typeof to === "number") {
@@ -130,7 +144,7 @@ module.exports = {
     addNote,
     removeNote,
     listNotes,
-    listAll,
-    read,
-    swap
+    listAllNotes,
+    readNote,
+    swapNotes
 }
