@@ -25,7 +25,7 @@ yargs.command({
         }
     },
     handler(argv) {
-        notes.addNote(argv.title, argv.body, argv.i);
+        notes.addNote(argv.title, argv.body, argv.i || false);
     }
 });
 
@@ -34,7 +34,7 @@ yargs.command({
     command: "remove",
     describe: "Remove a note",
     handler(argv) {
-        notes.removeNote(argv._.slice(1));
+        notes.removeNote(argv._.slice(1), argv.i ||false);
     }
 });
 
@@ -63,7 +63,7 @@ yargs.command({
     command: "read",
     describe: "Read a note",
     handler(argv) {
-        notes.readNote(argv._.slice(1));
+        notes.readNote(argv._.slice(1), argv.i || false);
     }
 });
 
@@ -71,7 +71,7 @@ yargs.command({
     command: "swap",
     describe: "Swap positions between two notes",
     handler(argv) {
-        notes.swapNotes(argv._[1], argv._[2], argv.i);
+        notes.swapNotes(argv._[1], argv._[2], argv.i || false);
     }
 });
 
