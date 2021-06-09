@@ -82,21 +82,21 @@ const listNotes = function() {
     if (notes.length !== 0) {
 
         // Important notes management
-        console.log(chalk.bgRedBright.black("Your important notes:"));
+        console.log(chalk.bgRedBright.black("\nYour important notes:"));
         const importantNotes = notes.filter(n => n.important);
         for (let i = 0; i < importantNotes.length; i++) {
-            console.log(chalk.redBright(`Note ${i+1}: `) + importantNotes[i].title);
+            console.log(chalk.redBright(`\nNote ${i+1}: `) + importantNotes[i].title);
         }
 
         // Common notes management
-        console.log(chalk.bgBlueBright.black("Your common notes:"));
+        console.log(chalk.bgBlueBright.black("\nYour common notes:"));
         const commonNotes = notes.filter(n => !n.important);
         for (let i = 0; i < commonNotes.length; i++) {
-            console.log(chalk.blueBright(`Note ${i+1}: `) + commonNotes[i].title);
+            console.log(chalk.blueBright(`\nNote ${i+1}: `) + commonNotes[i].title);
         }
 
     } else {
-        console.log(chalk.bgBlueBright.black("There are no notes to show! Add one using the 'add' command!"));
+        console.log(chalk.bgBlueBright.black("\nThere are no notes to show! Add one using the 'add' command!"));
     }
 }
 
@@ -110,7 +110,7 @@ const listAllNotes = function() {
     if (notes.length !== 0) {
 
         // Important notes management
-        console.log(chalk.bgRedBright.black("Your important notes:"));
+        console.log(chalk.bgRedBright.black("\nYour important notes:"));
         let noteNumber = 1;
         for (let note of importantNotes) {
             console.log(chalk.redBright(`▼ Note ${noteNumber}: `) + note.title);
@@ -130,7 +130,7 @@ const listAllNotes = function() {
         }
 
     } else {
-        console.log(chalk.bgBlueBright.black("There are no notes to show! Add one using the 'add' command!"));
+        console.log(chalk.bgBlueBright.black("\nThere are no notes to show! Add one using the 'add' command!"));
     }
 }
 
