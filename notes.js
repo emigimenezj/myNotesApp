@@ -38,22 +38,20 @@ const removeNote = function(indexs, important) {
     indexs = indexs.map(i => i - 1);
 
     const notesWorkWith = important ? importantNotes : commonNotes;
+
     let notesToKeep = [];
 
     if (!indexs.some(i => notesWorkWith[i] === undefined)) {
         for (let n = 0; n < notesWorkWith.length; n++) {
             if (!indexs.some(i => i === n)) notesToKeep.push(notesWorkWith[n]);
         }
-        notesToKeep = important ? notesToKeep.concat(commonNotes) : importantNotes.concat(notesToKeep);
 
         // Listing notes to be deleted.
-        for (let i = 0; i < notesWorkWith.length; i++) {
-            if (!notesToKeep.some(n => n.title === notesWorkWith[i].title)) {
-                if (important)
-                    console.log(chalk.redBright(`Note ${i + 1}: `) + notesWorkWith[i].title);
-                else
-                    console.log(chalk.blueBright(`Note ${i + 1}: `) + notesWorkWith[i].title);
-            }
+        for (let i = 0; i < indexs.length; i++) {
+            if (important)
+                console.log(chalk.redBright(`Note ${indexs[i] + 1}: `) + notesWorkWith[indexs[i]].title);
+            else
+                console.log(chalk.blueBright(`Note ${indexs[i] + 1}: `) + notesWorkWith[indexs[i]].title);
         }
 
         // Warning message before delete notes. (requires user confirmation for deleting notes)
@@ -63,6 +61,7 @@ const removeNote = function(indexs, important) {
             answer = str.toString().trim();
             if (answer === "Y") {
                 // Saving changes
+                notesToKeep = important ? notesToKeep.concat(commonNotes) : importantNotes.concat(notesToKeep);
                 saveNotes(notesToKeep);
                 console.log(chalk.bgGreen.black(`${important ? "Important" : "Common"} notes has been removed successfully!`));
             } else {
@@ -211,11 +210,13 @@ const editNote = function (index, important, changeFlag, addFlag, title, body) {
     // Change priority of the note.
     if (changeFlag) {
         notesWorkWith[index].important = !important;
-
         notesWorkWith = important ? notesWorkWith.concat(commonNotes) : importantNotes.concat(notesWorkWith);
         saveNotes(notesWorkWith);
         console.log(chalk.bgGreen.black(`The note ${index+1} was transfer to ${important? "common" : "important"} category.`));
     }
+
+    // Establishing group of notes with which to work.
+    notesWorkWith = important ? importantNotes : commonNotes;
 
     // Update body section
     if (addFlag) {
