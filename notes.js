@@ -199,66 +199,54 @@ const editNote = function (index, important, changeFlag, addFlag, title, body) {
     // Transform to zero indexation
     index--;
 
+    // Establishing group of notes with which to work.
+    let notesWorkWith = important ? importantNotes : commonNotes;
+
+    // Checking valid indexation
+    if (notesWorkWith[index] === undefined) {
+        console.log(chalk.bgRed.black(`You didn't provide a valid index.`));
+        return;
+    }
+
     // Change priority of the note.
     if (changeFlag) {
-        if (important)
-            importantNotes[index].important = false;
-        else
-            commonNotes[index].important = true;
-        saveNotes(importantNotes.concat(commonNotes));
+        notesWorkWith[index].important = !important;
+
+        notesWorkWith = important ? notesWorkWith.concat(commonNotes) : importantNotes.concat(notesWorkWith);
+        saveNotes(notesWorkWith);
         console.log(chalk.bgGreen.black(`The note ${index+1} was transfer to ${important? "common" : "important"} category.`));
     }
 
     // Update body section
     if (addFlag) {
-        if (important) {
-            importantNotes[index].oldBody = importantNotes[index].body;     // Save old body for undo function
-            importantNotes[index].body += "\n " + body;
-        } else {
-            commonNotes[index].oldBody = commonNotes[index].body;           // Save old body for undo function
-            commonNotes[index].body += "\n " + body;
-        }
-        saveNotes(importantNotes.concat(commonNotes));      // Saving changes
-        if (changeFlag) important = !important;
+        notesWorkWith[index].oldBody = notesWorkWith[index].body;       // Save old body for undo function
+        notesWorkWith[index].body += "\n " + body;
+
+        notesWorkWith = important ? notesWorkWith.concat(commonNotes) : importantNotes.concat(notesWorkWith);
+        saveNotes(notesWorkWith);
         console.log(chalk.bgGreen.black(`The body of the note ${index+1} was updated successfully`));
         return;
     }
 
     // Replace title and/or body section
     if (title || body) {
-        if (important) {
-
-            // Important title management
-            if (title)
-                if (!notes.some(n => n.title === title)) {
-                    importantNotes[index].oldTitle = importantNotes[index].title;
-                    importantNotes[index].title = title;
-                } else {
-                    console.log(chalk.bgRed.black("Note title taken!"));
-                }
-            // Important body management
-            if (body) {
-                importantNotes[index].oldBody = importantNotes[index].body
-                importantNotes[index].body = body;
-            }
-
-        } else {
-
-            // Common title management
-            if (title)
-                if (!notes.some(n => n.title === title)) {
-                    commonNotes[index].oldTitle = commonNotes[index].title;
-                    commonNotes[index].title = title;
-                } else {
-                    console.log(chalk.bgRed.black("Note title taken!"));
-                }
-            // Common body management
-            if (body) {
-                commonNotes[index].oldBody = commonNotes[index].body
-                commonNotes[index].body = body;
+        // Title management
+        if (title) {
+            if (!notes.some(n => n.title === title)) {
+                notesWorkWith[index].oldTitle = notesWorkWith[index].title;
+                notesWorkWith[index].title = title;
+            } else {
+                console.log(chalk.bgRed.black("Note title taken!"));
             }
         }
-        saveNotes(importantNotes.concat(commonNotes));      // Saving changes
+        // Body management
+        if (body) {
+            notesWorkWith[index].oldBody = notesWorkWith[index].body;
+            notesWorkWith[index].body = body;
+        }
+
+        notesWorkWith = important ? notesWorkWith.concat(commonNotes) : importantNotes.concat(notesWorkWith);
+        saveNotes(notesWorkWith);
         console.log(chalk.bgGreenBright.black(`The ${important? "important" : "common"} note ${index+1} was replaced successfully`));
     } else {
         console.log(chalk.bgRed.black("You have to provide a valid title or body (or both)."));
