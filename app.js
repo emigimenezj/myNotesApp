@@ -130,4 +130,27 @@ yargs.command({
     }
 });
 
+yargs.command({
+    command: "undo",
+    describe: "--------------------------------------------------------------\n" +
+        "Undone the last edit for an specifics notes.",
+    builder: {
+        i: {
+            describe: "Set this flag to select important notes.",
+            type: 'boolean'
+        },
+        t: {
+            describe: "Set this flag to undone the last title edit of specifics notes.",
+            type: 'boolean'
+        },
+        b: {
+            describe: "Set this flag to undone the last body edit of specifics notes.",
+            type: 'boolean'
+        }
+    },
+    handler(argv) {
+        notes.undoEdit(argv._.slice(1), argv.i, argv.t, argv.b);
+    }
+});
+
 yargs.parse();

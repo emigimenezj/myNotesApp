@@ -211,10 +211,13 @@ const editNote = function (index, important, changeFlag, addFlag, title, body) {
 
     // Update body section
     if (addFlag) {
-        if (important)
+        if (important) {
+            importantNotes[index].oldBody = importantNotes[index].body;     // Save old body for undo function
             importantNotes[index].body += "\n " + body;
-        else
+        } else {
+            commonNotes[index].oldBody = commonNotes[index].body;           // Save old body for undo function
             commonNotes[index].body += "\n " + body;
+        }
         saveNotes(importantNotes.concat(commonNotes));      // Saving changes
         if (changeFlag) important = !important;
         console.log(chalk.bgGreen.black(`The body of the note ${index+1} was updated successfully`));
@@ -228,29 +231,80 @@ const editNote = function (index, important, changeFlag, addFlag, title, body) {
             // Important title management
             if (title)
                 if (!notes.some(n => n.title === title)) {
+                    importantNotes[index].oldTitle = importantNotes[index].title;
                     importantNotes[index].title = title;
                 } else {
                     console.log(chalk.bgRed.black("Note title taken!"));
                 }
             // Important body management
-            if (body) importantNotes[index].body = body;
+            if (body) {
+                importantNotes[index].oldBody = importantNotes[index].body
+                importantNotes[index].body = body;
+            }
 
         } else {
 
             // Common title management
             if (title)
                 if (!notes.some(n => n.title === title)) {
+                    commonNotes[index].oldTitle = commonNotes[index].title;
                     commonNotes[index].title = title;
                 } else {
                     console.log(chalk.bgRed.black("Note title taken!"));
                 }
             // Common body management
-            if (body) commonNotes[index].body = body;
+            if (body) {
+                commonNotes[index].oldBody = commonNotes[index].body
+                commonNotes[index].body = body;
+            }
         }
         saveNotes(importantNotes.concat(commonNotes));      // Saving changes
         console.log(chalk.bgGreenBright.black(`The ${important? "important" : "common"} note ${index+1} was replaced successfully`));
     } else {
         console.log(chalk.bgRed.black("You have to provide a valid title or body (or both)."));
+    }
+}
+
+const undoEdit = function (indexs, important, title, body) {
+
+    const notes = loadNotes();
+
+    const importantNotes = notes.filter(n => n.important);
+    const commonNotes = notes.filter(n => !n.important);
+
+    // Transform to zero indexation
+    indexs = indexs.map(i => i - 1);
+
+    // Establishing group of notes with which to work.
+    let notesWorkWith = important ? importantNotes : commonNotes;
+
+    for (let i of indexs) {
+        if (title) {
+            if (notesWorkWith[i].oldTitle) {        // Checking for previous edits.
+                let aux = notesWorkWith[i].title;
+                notesWorkWith[i].title = notesWorkWith[i].oldTitle;
+                notesWorkWith[i].oldTitle = aux;
+            } else {
+                console.log(`The title of note ${i+1} has not had any edits yet.`);
+            }
+        }
+        if (body) {
+            if (notesWorkWith[i].oldBody) {
+                let aux = notesWorkWith[i].body;
+                notesWorkWith[i].body = notesWorkWith[i].oldBody;
+                notesWorkWith[i].oldBody = aux;
+            } else {
+                console.log(`The body of note ${i+1} has not had any edits yet.`);
+            }
+        }
+    }
+
+    if (title || body) {
+        notesWorkWith = important ? notesWorkWith.concat(commonNotes) : importantNotes.concat(notesWorkWith);
+        saveNotes(notesWorkWith);
+        console.log(chalk.bgGreen.black(`The ${important? "important" : "common"} notes was recovered successfully!`));
+    } else {
+        console.log(chalk.bgRed.black(`You didn't provide either the title flag or the body flag!`));
     }
 }
 
@@ -280,5 +334,6 @@ module.exports = {
     listAllNotes,
     readNote,
     swapNotes,
-    editNote
+    editNote,
+    undoEdit
 }
