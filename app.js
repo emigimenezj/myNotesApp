@@ -91,6 +91,43 @@ yargs.command({
     }
 });
 
-yargs.parse();
+yargs.command({
+    command: "edit",
+    describe: "--------------------------------------------------------------\n" +
+        "Allows you to edit priority, title and body of a note." +
+        "Set the flag '-i' to change priority." +
+        "Set the flag '-a' to add some text to the body.",
+    builder: {
+        title: {
+            describe: `Use ${chalk.redBright("--title=\"TITLE\"")} to provide a new title.`,
+            type: 'string'
+        },
+        body: {
+            describe: `Use ${chalk.redBright("--body=\"BODY\"")} to provide a new body.`,
+            type: 'string'
+        },
+        i: {
+            describe: "Set this flag to edit a note to the important list.",
+            type: 'boolean'
+        },
+        c: {
+            describe: "Set this flag to change the note priority.",
+            type: 'boolean'
+        },
+        a: {
+            describe: "Set this flag to add some text to the existing body.",
+            type: 'boolean'
+        }
+    },
+    handler(argv) {
+        notes.editNote(
+            argv._[1],
+            argv.i || false,
+            argv.c || false,
+            argv.a || false,
+            argv.title,
+            argv.body);
+    }
+});
 
-// commit -m "Provides more verbose description of command's functionality in the 'help' area."
+yargs.parse();
