@@ -15,11 +15,12 @@ const addNote = function(title, body, important) {
     const duplicateNotes = notes.some(n => n.title === title);
 
     if (!duplicateNotes) {
-        if (important) {
-            importantNotes.push({title, body, important})
-        } else {
-            commonNotes.push({title, body, important});
-        }
+
+        if (important)
+            importantNotes.unshift({title, body, important})
+        else
+            commonNotes.unshift({title, body, important});
+
         saveNotes(importantNotes.concat(commonNotes));
         console.log(chalk.bgGreen.black(`New ${important? "important" : "common"} note added!`));
     } else {
@@ -176,10 +177,12 @@ const swapNotes = function(from, to, important) {
 
     // Validating index set
     if (notesWorkWith[from] !== undefined && notesWorkWith[to] !== undefined) {
+        let value = notesWorkWith.splice(from, 1)[0];
+        notesWorkWith.splice(to, 0, value);
 
-        let aux = notesWorkWith[to];
-        notesWorkWith[to] = notesWorkWith[from];
-        notesWorkWith[from] = aux;
+        // let aux = notesWorkWith[to];
+        // notesWorkWith[to] = notesWorkWith[from];
+        // notesWorkWith[from] = aux;
 
         notesWorkWith = important ? notesWorkWith.concat(commonNotes) : importantNotes.concat(notesWorkWith);
         saveNotes(notesWorkWith);
